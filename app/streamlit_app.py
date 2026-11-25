@@ -18,6 +18,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from soc_assistant.config import load_config  # noqa: E402
+from soc_assistant.llm.citations import check_citations  # noqa: E402
 from soc_assistant.llm.client import LLMClient  # noqa: E402
 from soc_assistant.llm.prompts import source_label  # noqa: E402
 from soc_assistant.rag import RagPipeline  # noqa: E402
@@ -51,6 +52,11 @@ def render_sources(sources: list[dict]) -> None:
             st.text(s["text"])
 
 
+def render_check(level: str, text: str) -> None:
+    """Refusal-gate / citation-validator verdict shown under an answer."""
+    {"ok": st.success, "warn": st.warning, "info": st.info}[level](text)
+
+
 # ---- Sidebar -----------------------------------------------------------------------
 with st.sidebar:
     st.header("🛡️ SOC Assistant")
@@ -74,6 +80,8 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
+        if msg.get("check"):
+            render_check(*msg["check"])
         if msg.get("sources"):
             render_sources(msg["sources"])
         if msg.get("timing"):
@@ -88,26 +96,40 @@ if question:
 
     with st.chat_message("assistant"):
         t0 = time.perf_counter()
-        hits = pipeline.retrieve(question, k=top_k, mode=mode)
+        retrieval = pipeline.retrieve(question, k=top_k, mode=mode)
         t_retrieval = time.perf_counter() - t0
         sources = [{
             "label": source_label(i), "title": h.chunk.title, "section": h.chunk.section,
             "source_id": h.chunk.source_id, "license": h.chunk.license, "url": h.chunk.url,
             "text": h.chunk.text, "dense_score": h.dense_score,
-        } for i, h in enumerate(hits, start=1)]
+        } for i, h in enumerate(retrieval.hits, start=1)]
 
         t1 = time.perf_counter()
+        check = None
         try:
-            answer = st.write_stream(pipeline.stream_answer(question, hits))
+            answer = st.write_stream(pipeline.stream_answer(question, retrieval))
+            if retrieval.refused:
+                check = ("info", f"Refused by the evidence gate: best match cosine "
+                                 f"{retrieval.best_score:.2f} < threshold {retrieval.threshold:.2f}. "
+                                 "The LLM was not called.")
+            else:
+                report = check_citations(answer, len(sources))
+                check = (("ok", f"Citations valid ({len(report.cited)} sources cited, "
+                                f"{report.coverage:.0%} of sentences cited).")
+                         if report.valid and not report.problems()
+                         else ("warn", "Check this answer: " + "; ".join(report.problems()) + "."))
         except requests.exceptions.ConnectionError:
-            answer = "⚠️ Cannot reach the LLM. Is Ollama running? (`systemctl status ollama`)"
+            answer = "⚠️ Cannot reach the LLM. Is Ollama running? (`ollama serve`)"
             st.error(answer)
         except requests.exceptions.RequestException as e:
             answer = f"⚠️ LLM request failed: {e}"
             st.error(answer)
-        timing = f"retrieval {t_retrieval * 1000:.0f} ms · answer {time.perf_counter() - t1:.1f} s · mode {mode}"
+        timing = (f"retrieval {t_retrieval * 1000:.0f} ms · answer {time.perf_counter() - t1:.1f} s · "
+                  f"mode {mode} · best cosine {retrieval.best_score:.2f}")
+        if check:
+            render_check(*check)
         render_sources(sources)
         st.caption(timing)
 
     st.session_state.messages.append(
-        {"role": "assistant", "content": answer, "sources": sources, "timing": timing})
+        {"role": "assistant", "content": answer, "sources": sources, "timing": timing, "check": check})

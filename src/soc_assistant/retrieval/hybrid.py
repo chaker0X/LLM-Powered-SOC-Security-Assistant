@@ -60,11 +60,22 @@ class Retriever:
         self.dense = DenseIndex(Embedder(embedding_model), self.chunks)
 
     def search(self, query: str, k: int = 4, mode: str = "hybrid") -> list[Hit]:
+        return self.search_with_score(query, k, mode)[0]
+
+    def search_with_score(self, query: str, k: int = 4, mode: str = "hybrid") -> tuple[list[Hit], float]:
+        """Like `search`, plus the best dense cosine score over the whole corpus.
+
+        The refusal gate needs that score in every mode. A hit's own `dense_score` is not
+        enough: in hybrid mode the top chunk may come from BM25 only (dense_score None).
+        """
         if mode not in MODES:
             raise ValueError(f"mode must be one of {MODES}")
         n = max(self.candidates, k)
         bm = self.bm25.search(query, n) if mode in ("bm25", "hybrid") else []
-        de = self.dense.search(query, n) if mode in ("dense", "hybrid") else []
+        de = self.dense.search(query, n if mode != "bm25" else 1)
+        best_dense = de[0][1] if de else 0.0
+        if mode == "bm25":
+            de = []      # only used for the gate score, not for ranking
         bm_rank = {i: r for r, (i, _) in enumerate(bm, start=1)}
         de_rank = {i: r for r, (i, _) in enumerate(de, start=1)}
         de_score = dict(de)
@@ -76,5 +87,6 @@ class Retriever:
         else:
             ranked = rrf([[i for i, _ in bm], [i for i, _ in de]], self.rrf_k)
 
-        return [Hit(self.chunks[i], s, de_score.get(i), bm_rank.get(i), de_rank.get(i))
+        hits = [Hit(self.chunks[i], s, de_score.get(i), bm_rank.get(i), de_rank.get(i))
                 for i, s in ranked[:k]]
+        return hits, best_dense

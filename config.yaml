@@ -36,10 +36,14 @@ retrieval:
   top_k: 4                      # chunks sent to the LLM (few = faster on CPU)
   candidates: 30                # how many results each retriever passes to the fusion step
   rrf_k: 60                     # Reciprocal Rank Fusion constant (standard value)
-  # Refusal gate (hallucination control) uses the best DENSE cosine score, because fused
-  # RRF scores are not comparable across queries. Calibrated in week 2 on the
-  # out-of-scope questions of eval/retrieval_questions.jsonl.
-  min_score: 0.35
+  # Refusal gate (hallucination control): refuse without calling the LLM when the best
+  # DENSE cosine score over the whole corpus is below this value. Fused RRF scores are not
+  # comparable across queries, so they are not used. One value per embedding model,
+  # because each model has its own score scale. Calibrated by eval/calibrate_refusal.py
+  # (answers 100% of in-scope questions; see eval/results/refusal_calibration.md).
+  min_score:
+    BAAI/bge-small-en-v1.5: 0.60
+    ibm-granite/granite-embedding-small-english-r2: 0.82
 
 guard:
   enabled: true
