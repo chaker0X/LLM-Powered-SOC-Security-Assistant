@@ -32,19 +32,21 @@ class LLMClient:
     def model(self) -> str:
         return self.cfg[self.provider]["model"]
 
-    def chat(self, messages: list[Message], stream: bool = True) -> Iterator[str]:
+    def chat(self, messages: list[Message], stream: bool = True,
+             schema: dict | None = None) -> Iterator[str]:
+        """`schema`: a JSON schema the answer must follow (constrained decoding), or None."""
         if self.provider == "ollama":
-            yield from self._chat_ollama(messages, stream)
+            yield from self._chat_ollama(messages, stream, schema)
         else:
-            yield from self._chat_api(messages, stream)
+            yield from self._chat_api(messages, stream, schema)
 
-    def complete(self, messages: list[Message]) -> str:
+    def complete(self, messages: list[Message], schema: dict | None = None) -> str:
         """Convenience wrapper: return the full answer as one string."""
-        return "".join(self.chat(messages, stream=False))
+        return "".join(self.chat(messages, stream=False, schema=schema))
 
     # Backends
 
-    def _chat_ollama(self, messages: list[Message], stream: bool) -> Iterator[str]:
+    def _chat_ollama(self, messages: list[Message], stream: bool, schema: dict | None) -> Iterator[str]:
         c = self.cfg["ollama"]
         payload = {
             "model": c["model"],
@@ -52,6 +54,8 @@ class LLMClient:
             "stream": stream,
             "options": {"temperature": self.cfg["temperature"], "num_ctx": c["num_ctx"]},
         }
+        if schema:
+            payload["format"] = schema
         with requests.post(
             f"{c['base_url']}/api/chat", json=payload, stream=stream, timeout=self.cfg["timeout_s"]
         ) as r:
@@ -68,7 +72,7 @@ class LLMClient:
                 if chunk.get("done"):
                     break
 
-    def _chat_api(self, messages: list[Message], stream: bool) -> Iterator[str]:
+    def _chat_api(self, messages: list[Message], stream: bool, schema: dict | None) -> Iterator[str]:
         c = self.cfg["api"]
         key = os.environ.get(c["api_key_env"])
         if not key:
@@ -79,6 +83,9 @@ class LLMClient:
             "stream": stream,
             "temperature": self.cfg["temperature"],
         }
+        if schema:
+            payload["response_format"] = {"type": "json_schema",
+                                          "json_schema": {"name": "answer", "schema": schema}}
         with requests.post(
             f"{c['base_url']}/chat/completions",
             json=payload,

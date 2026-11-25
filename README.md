@@ -42,7 +42,10 @@ make data      # pinned public sources -> data/raw
 make corpus    # parse + chunk -> data/processed/chunks.jsonl
 make index     # embeddings -> Chroma (data/processed/chroma)
 
-# 5. Chat
+# 5. Synthetic alerts (already committed in data/alerts; this regenerates them)
+make alerts
+
+# 6. Chat or analyze an alert (sidebar "Mode")
 make app       # http://localhost:8501
 ```
 
@@ -77,11 +80,11 @@ for the BM25 vs dense vs hybrid comparison (`make eval-retrieval`).
 
 - [x] Phase 0: project skeleton, local LLM smoke test
 - [x] Week 1: ingestion (ATT&CK, playbooks), hybrid retrieval, retrieval eval, basic chat with sources
-- [ ] Week 2: synthetic alerts, incident summaries, citations, refusal gate
-  - [x] refusal gate, threshold calibrated per embedding model
+- [x] Week 2: synthetic alerts, incident summaries, citations, refusal gate
+  - [x] refusal gate, threshold calibrated per embedding model; exact technique-ID shortcut
   - [x] citation validator
-  - [ ] synthetic alerts
-  - [ ] incident summaries
+  - [x] 200 synthetic alerts over 18 techniques, 15% with a hidden injection payload (`make alerts`)
+  - [x] structured incident summary (JSON schema): technique, severity, sourced response steps
 - [ ] Week 3: prompt-injection detector (TF-IDF+LR baseline vs fine-tuned transformer)
 - [ ] Week 4: evaluation (retrieval hit@k/MRR, groundedness, attack success with/without guard), demo
 

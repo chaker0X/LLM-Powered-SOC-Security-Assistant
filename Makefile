@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 TORCH_CPU = torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
 
-.PHONY: setup smoke test data corpus index eval-retrieval app all-data
+.PHONY: setup smoke test data corpus index eval-retrieval app all-data alerts
 
 setup:            ## create venv, install CPU-only torch, deps and the package (editable)
 	python3 -m venv .venv
@@ -25,6 +25,9 @@ index:            ## embed the chunks into Chroma (both embedders, for the compa
 	$(PY) -m soc_assistant.retrieval.index --models BAAI/bge-small-en-v1.5 ibm-granite/granite-embedding-small-english-r2
 
 all-data: data corpus index
+
+alerts:           ## synthetic labelled alerts -> data/alerts/alerts.jsonl
+	$(PY) scripts/gen_alerts.py
 
 eval-retrieval:   ## BM25 vs dense vs hybrid on eval/retrieval_questions.jsonl
 	$(PY) eval/retrieval_eval.py
