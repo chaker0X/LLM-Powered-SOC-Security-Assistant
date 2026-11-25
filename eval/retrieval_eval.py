@@ -109,7 +109,8 @@ def main() -> None:
     calib = {}
     for model, r in retrievers.items():
         ins, out = top_dense_scores(r, in_scope), top_dense_scores(r, oos)
-        calib[model] = {"in_scope": ins, "out_of_scope": out}
+        calib[model] = {"in_scope": ins, "out_of_scope": out,
+                        "out_of_scope_ids": [q["id"] for q in oos]}
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     (RESULTS / "retrieval_eval.json").write_text(json.dumps(

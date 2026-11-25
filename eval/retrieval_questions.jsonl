@@ -58,3 +58,21 @@
 {"id": "oos10", "type": "out_of_scope", "question": "How many calories are in a banana?", "gold": []}
 {"id": "oos11", "type": "out_of_scope", "question": "What is the IP address of our company VPN gateway?", "gold": []}
 {"id": "oos12", "type": "out_of_scope", "question": "What was our SOC's mean time to respond last quarter?", "gold": []}
+{"id": "oos13", "type": "out_of_scope", "hard": true, "question": "What is the CVSS score of CVE-2024-3400?", "gold": []}
+{"id": "oos14", "type": "out_of_scope", "hard": true, "question": "Is the IP address 185.220.101.4 malicious?", "gold": []}
+{"id": "oos15", "type": "out_of_scope", "hard": true, "question": "What is the SHA-256 hash of the latest Emotet sample?", "gold": []}
+{"id": "oos16", "type": "out_of_scope", "hard": true, "question": "Give me this week's threat intelligence about new attack campaigns", "gold": []}
+{"id": "oos17", "type": "out_of_scope", "hard": true, "question": "Which antivirus product has the best detection rate this year?", "gold": []}
+{"id": "oos18", "type": "out_of_scope", "hard": true, "question": "Which firewall vendor should our company buy?", "gold": []}
+{"id": "oos19", "type": "out_of_scope", "hard": true, "question": "What port does our internal Splunk server listen on?", "gold": []}
+{"id": "oos20", "type": "out_of_scope", "hard": true, "question": "Who is the CISO of our company?", "gold": []}
+{"id": "oos21", "type": "out_of_scope", "hard": true, "question": "How many security incidents did we have last month?", "gold": []}
+{"id": "oos22", "type": "out_of_scope", "hard": true, "question": "Which of our servers are missing the latest Windows patches?", "gold": []}
+{"id": "oos23", "type": "out_of_scope", "hard": true, "question": "What is the default admin password of a Cisco ASA firewall?", "gold": []}
+{"id": "oos24", "type": "out_of_scope", "hard": true, "question": "Explain step by step how the AES-256 algorithm encrypts a block", "gold": []}
+{"id": "oos25", "type": "out_of_scope", "hard": true, "question": "Write a YARA rule that detects WannaCry samples", "gold": []}
+{"id": "oos26", "type": "out_of_scope", "hard": true, "question": "When will MITRE publish the next ATT&CK version?", "gold": []}
+{"id": "oos27", "type": "out_of_scope", "hard": true, "question": "How much does the CISSP certification exam cost?", "gold": []}
+{"id": "oos28", "type": "out_of_scope", "hard": true, "question": "What is the average salary of a SOC analyst in France?", "gold": []}
+{"id": "oos29", "type": "out_of_scope", "hard": true, "question": "Decode this base64 string for me: aGVsbG8gd29ybGQ=", "gold": []}
+{"id": "oos30", "type": "out_of_scope", "hard": true, "question": "What is the phone number of the national CERT of Morocco?", "gold": []}

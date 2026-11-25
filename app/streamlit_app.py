@@ -109,8 +109,7 @@ if question:
         try:
             answer = st.write_stream(pipeline.stream_answer(question, retrieval))
             if retrieval.refused:
-                check = ("info", f"Refused by the evidence gate: best match cosine "
-                                 f"{retrieval.best_score:.2f} < threshold {retrieval.threshold:.2f}. "
+                check = ("info", f"Refused by the evidence gate: {retrieval.reason}. "
                                  "The LLM was not called.")
             else:
                 report = check_citations(answer, len(sources))
@@ -125,7 +124,8 @@ if question:
             answer = f"⚠️ LLM request failed: {e}"
             st.error(answer)
         timing = (f"retrieval {t_retrieval * 1000:.0f} ms · answer {time.perf_counter() - t1:.1f} s · "
-                  f"mode {mode} · best cosine {retrieval.best_score:.2f}")
+                  f"mode {mode} · best cosine {retrieval.best_score:.2f}"
+                  + (f" · {retrieval.reason}" if retrieval.known_ids else ""))
         if check:
             render_check(*check)
         render_sources(sources)
