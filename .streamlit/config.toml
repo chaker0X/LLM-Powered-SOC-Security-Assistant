@@ -1,0 +1,7 @@
+# Local-only app: reachable from this machine only, no usage statistics sent to Streamlit.
+[server]
+address = "localhost"
+
+[browser]
+gatherUsageStats = false
+serverAddress = "localhost"

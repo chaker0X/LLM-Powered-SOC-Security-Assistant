@@ -16,6 +16,7 @@ from functools import lru_cache
 
 import chromadb
 import numpy as np
+from chromadb.config import Settings
 
 from soc_assistant.config import PROJECT_ROOT, load_config
 from soc_assistant.ingest.documents import Chunk
@@ -30,7 +31,12 @@ def load_embedder(model_name: str, device: str = "cpu"):
     from sentence_transformers import SentenceTransformer  # slow import, so done lazily
 
     # float32: some models default to bfloat16, which this CPU runs slowly and less precisely.
-    return SentenceTransformer(model_name, device=device, model_kwargs={"dtype": "float32"})
+    kwargs = {"device": device, "model_kwargs": {"dtype": "float32"}}
+    try:
+        # Cached model: no request to the HuggingFace Hub, so nothing leaves the machine.
+        return SentenceTransformer(model_name, local_files_only=True, **kwargs)
+    except OSError:
+        return SentenceTransformer(model_name, **kwargs)   # first run only: download it once
 
 
 class Embedder:
@@ -53,7 +59,7 @@ class Embedder:
 def chroma_client() -> chromadb.ClientAPI:
     path = PROJECT_ROOT / load_config()["paths"]["vector_store"]
     path.mkdir(parents=True, exist_ok=True)
-    return chromadb.PersistentClient(path=str(path))
+    return chromadb.PersistentClient(path=str(path), settings=Settings(anonymized_telemetry=False))
 
 
 class DenseIndex:

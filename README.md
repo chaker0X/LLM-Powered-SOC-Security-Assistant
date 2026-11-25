@@ -77,7 +77,11 @@ for the BM25 vs dense vs hybrid comparison (`make eval-retrieval`).
 
 - [x] Phase 0: project skeleton, local LLM smoke test
 - [x] Week 1: ingestion (ATT&CK, playbooks), hybrid retrieval, retrieval eval, basic chat with sources
-- [x] Week 2: synthetic alerts, incident summaries, citations, refusal gate
+- [ ] Week 2: synthetic alerts, incident summaries, citations, refusal gate
+  - [x] refusal gate, threshold calibrated per embedding model
+  - [x] citation validator
+  - [ ] synthetic alerts
+  - [ ] incident summaries
 - [ ] Week 3: prompt-injection detector (TF-IDF+LR baseline vs fine-tuned transformer)
 - [ ] Week 4: evaluation (retrieval hit@k/MRR, groundedness, attack success with/without guard), demo
 

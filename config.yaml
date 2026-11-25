@@ -46,7 +46,7 @@ retrieval:
     ibm-granite/granite-embedding-small-english-r2: 0.82
 
 guard:
-  enabled: true
+  enabled: false                # injection guard not built yet (week 3); nothing reads this yet
   model_path: training/artifacts/injection_clf
   threshold: 0.5
 
